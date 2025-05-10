@@ -12,7 +12,7 @@ public class Devoir {
     private int id;
 
     private String titre;
-    private String description;
+    private String description ;
 
     @Lob
     @Column(name = "fichier_data")
