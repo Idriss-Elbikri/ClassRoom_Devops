@@ -11,13 +11,20 @@ variables:
   warFileName: 'ClassRoom.war'
 
 steps:
-# Étape 1 : Build du projet avec Maven
+# Étape 0 : Installer Java 17 via commande shell
+- script: |
+    sudo apt-get update
+    sudo apt-get install -y openjdk-17-jdk
+    java -version
+  displayName: '☕ Installer Java 17'
+
+# Étape 1 : Build avec Maven
 - task: Maven@3
   displayName: '🔧 Build avec Maven'
   inputs:
     mavenPomFile: 'pom.xml'
     goals: 'clean package'
-    options: '-DskipTests=true'
+    options: '-DskipTests=true --add-opens java.base/java.util=ALL-UNNAMED'
 
 # Étape 2 : Copier le fichier .war
 - task: CopyFiles@2
@@ -26,9 +33,9 @@ steps:
     contents: '**/target/*.war'
     targetFolder: '$(Build.ArtifactStagingDirectory)'
 
-# Étape 3 : Publier comme artefact
+# Étape 3 : Publier l'artefact .war pour la Release
 - task: PublishBuildArtifacts@1
-  displayName: '📤 Publier Artefact'
+  displayName: '📤 Publier Artefact .war'
   inputs:
     pathToPublish: '$(Build.ArtifactStagingDirectory)'
     artifactName: '$(artifactName)'
