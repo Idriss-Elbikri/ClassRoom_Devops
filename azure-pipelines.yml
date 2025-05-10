@@ -11,17 +11,12 @@ variables:
   warFileName: 'ClassRoom.war'
 
 steps:
-# Vérifier les versions de Maven et Java
-- script: |
-    mvn -v
-  displayName: '🔍 Vérifier la version de Maven'
-
-# Étape 0 : Installer Java 17 via commande shell
+# Étape 0 : Installer Java 11
 - script: |
     sudo apt-get update
-    sudo apt-get install -y openjdk-17-jdk
+    sudo apt-get install -y openjdk-11-jdk
     java -version
-  displayName: '☕ Installer Java 17'
+  displayName: '☕ Installer Java 11'
 
 # Étape 1 : Build avec Maven
 - task: Maven@3
@@ -29,7 +24,7 @@ steps:
   inputs:
     mavenPomFile: 'pom.xml'
     goals: 'clean package'
-    options: '-DskipTests=true'  # Utilisation d'options minimales ici
+    options: '-DskipTests=true'
 
 # Étape 2 : Copier le fichier .war
 - task: CopyFiles@2
@@ -45,8 +40,7 @@ steps:
     pathToPublish: '$(Build.ArtifactStagingDirectory)'
     artifactName: '$(artifactName)'
 
-# Ignorer l'étape de tests (si nécessaire)
+# Désactiver les résultats de tests si inutiles
 - task: PublishTestResults@2
-  condition: false  # Ne pas exécuter cette étape
+  condition: false
   displayName: '📋 Publier les résultats des tests (désactivé)'
-
