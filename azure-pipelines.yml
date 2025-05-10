@@ -1,0 +1,46 @@
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  artifactName: 'drop'
+  warFileName: 'ClassRoom.war'
+
+steps:
+# ✅ Checkout du code
+- checkout: self
+
+# 🔧 Compilation avec Maven (et Java 17 déjà installé par Azure DevOps)
+- task: Maven@4
+  displayName: '🔧 Build avec Maven'
+  inputs:
+    mavenPomFile: 'pom.xml'
+    goals: 'clean package'
+    mavenOptions: >
+      -Xmx1024m 
+      --add-opens java.base/java.util=ALL-UNNAMED 
+      --add-opens java.base/java.lang=ALL-UNNAMED 
+      --add-opens java.base/java.lang.reflect=ALL-UNNAMED 
+      --add-opens java.base/java.text=ALL-UNNAMED 
+      --add-opens java.desktop/java.awt.font=ALL-UNNAMED
+    javaHomeOption: 'JDKVersion'
+    jdkVersionOption: '17'
+    publishJUnitResults: false
+
+# 📦 Copier le fichier WAR
+- task: CopyFiles@2
+  displayName: '📦 Copier le fichier WAR'
+  inputs:
+    contents: '**/target/*.war'
+    targetFolder: '$(Build.ArtifactStagingDirectory)'
+
+# 📤 Publier l'artefact WAR pour la Release pipeline
+- task: PublishBuildArtifacts@1
+  displayName: '📤 Publier Artefact .war'
+  inputs:
+    pathToPublish: '$(Build.ArtifactStagingDirectory)'
+    artifactName: '$(artifactName)'
