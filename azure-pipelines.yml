@@ -11,36 +11,36 @@ variables:
   warFileName: 'ClassRoom.war'
 
 steps:
-# Étape 0 : Installer Java 11
-- script: |
-    sudo apt-get update
-    sudo apt-get install -y openjdk-11-jdk
-    java -version
-  displayName: '☕ Installer Java 11'
+# ✅ Checkout du code
+- checkout: self
 
-# Étape 1 : Build avec Maven
-- task: Maven@3
+# 🔧 Compilation avec Maven (et Java 17 déjà installé par Azure DevOps)
+- task: Maven@4
   displayName: '🔧 Build avec Maven'
   inputs:
     mavenPomFile: 'pom.xml'
     goals: 'clean package'
-    options: '-DskipTests=true'
+    mavenOptions: >
+      -Xmx1024m 
+      --add-opens java.base/java.util=ALL-UNNAMED 
+      --add-opens java.base/java.lang=ALL-UNNAMED 
+      --add-opens java.base/java.lang.reflect=ALL-UNNAMED 
+      --add-opens java.base/java.text=ALL-UNNAMED 
+      --add-opens java.desktop/java.awt.font=ALL-UNNAMED
+    javaHomeOption: 'JDKVersion'
+    jdkVersionOption: '17'
+    publishJUnitResults: false
 
-# Étape 2 : Copier le fichier .war
+# 📦 Copier le fichier WAR
 - task: CopyFiles@2
-  displayName: '📦 Copier le .war'
+  displayName: '📦 Copier le fichier WAR'
   inputs:
     contents: '**/target/*.war'
     targetFolder: '$(Build.ArtifactStagingDirectory)'
 
-# Étape 3 : Publier l'artefact .war pour la Release
+# 📤 Publier l'artefact WAR pour la Release pipeline
 - task: PublishBuildArtifacts@1
   displayName: '📤 Publier Artefact .war'
   inputs:
     pathToPublish: '$(Build.ArtifactStagingDirectory)'
     artifactName: '$(artifactName)'
-
-# Désactiver les résultats de tests si inutiles
-- task: PublishTestResults@2
-  condition: false
-  displayName: '📋 Publier les résultats des tests (désactivé)'
